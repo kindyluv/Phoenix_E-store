@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Slf4j
@@ -43,5 +44,26 @@ class ProductRepositoryTest {
         assertThat(product.getPrice()).isEqualTo(5540);
         assertThat(product.getQuantity()).isEqualTo(9);
         assertThat(product.getDateCreated()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Find an existing product from database")
+    void findExistingProductFromDatabaseTest(){
+        Product product = productRepository.findById(12L).orElse(null);
+        assertThat(product).isNotNull();
+        assertThat(product.getId()).isEqualTo(12);
+        assertThat(product.getName()).isEqualTo("Luxury Mop");
+        assertThat(product.getPrice()).isEqualTo(2340);
+        assertThat(product.getQuantity()).isEqualTo(3);
+
+        log.info("Product retrieved :: {}", product);
+    }
+
+    @Test
+    @DisplayName("Find all product in the database")
+    void findAllProductsTest(){
+        List<Product> productList = productRepository.findAll();
+        assertThat(productList).isNotNull();
+        assertThat(productList.size()).isEqualTo(4);
     }
 }
