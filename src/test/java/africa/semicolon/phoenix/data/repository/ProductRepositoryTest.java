@@ -52,7 +52,7 @@ class ProductRepositoryTest {
         Product product = productRepository.findById(12L).orElse(null);
         assertThat(product).isNotNull();
         assertThat(product.getId()).isEqualTo(12);
-        assertThat(product.getName()).isEqualTo("Luxury Mop");
+        assertThat(product.getName()).isEqualTo("Luxury Map");
         assertThat(product.getPrice()).isEqualTo(2340);
         assertThat(product.getQuantity()).isEqualTo(3);
 
@@ -65,5 +65,31 @@ class ProductRepositoryTest {
         List<Product> productList = productRepository.findAll();
         assertThat(productList).isNotNull();
         assertThat(productList.size()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("Find product by name")
+    void findProductByName(){
+        Product product = productRepository.findByName("Luxury Map").orElse(null);
+        assertThat(product).isNotNull();
+        assertThat(product.getId()).isEqualTo(12);
+        assertThat(product.getName()).isEqualTo("Luxury Map");
+        assertThat(product.getPrice()).isEqualTo(2340);
+        assertThat(product.getQuantity()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Update a product attributes test")
+    void updateProductAttributesTest(){
+        Product productId = productRepository.findByName("MacBook Air").orElse(null);
+        assertThat(productId).isNotNull();
+        assertThat(productId.getName()).isEqualTo("MacBook Air");
+        assertThat(productId.getPrice()).isEqualTo(18340);
+        productId.setName("MacBook Air 13");
+        productId.setPrice(23420);
+
+        productRepository.save(productId);
+        assertThat(productId.getName()).isEqualTo("MacBook Air 13");
+        assertThat(productId.getPrice()).isEqualTo(23420);
     }
 }
