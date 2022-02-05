@@ -5,7 +5,12 @@ import africa.semicolon.phoenix.data.models.Product;
 import africa.semicolon.phoenix.data.repository.ProductRepository;
 import africa.semicolon.phoenix.web.Exceptions.BusinessLogicException;
 import africa.semicolon.phoenix.web.Exceptions.ProductDoesNotExistException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class ProductServiceImpl implements ProductService{
 
     @Autowired
@@ -52,12 +58,32 @@ public class ProductServiceImpl implements ProductService{
         return productRepository.save(product);
     }
 
+    private Product saveOrUpdate(Product product) throws BusinessLogicException {
+        if(product == null) throw new BusinessLogicException("Product cannot be null");
+        return productRepository.save(product);
+    }
+
+
     @Override
-    public Product updateProductDetails(Long productId, JsonPatch patch) throws BusinessLogicException {
+    public Product updateProductDetails(Long productId, JsonPatch productPatch) throws BusinessLogicException{
         Optional<Product> query = productRepository.findById(productId);
         if(query.isEmpty()) throw new BusinessLogicException("Products with name"+""+ productId+""+" does not exists");
 
-        return null;
+        Product targetProduct = query.get();
+        try{
+            targetProduct = applyPatchToProduct(productPatch, targetProduct);
+            log.info("Product after patch {}", targetProduct);
+            return saveOrUpdate(targetProduct);
+        }catch(JsonProcessingException | JsonPatchException | BusinessLogicException e){
+            throw new BusinessLogicException("Update failed");
+        }
+
+    }
+
+    private Product applyPatchToProduct(JsonPatch productPatch, Product targetProduct) throws JsonProcessingException, JsonPatchException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode patched = productPatch.apply(objectMapper.convertValue(targetProduct, JsonNode.class));
+        return objectMapper.treeToValue(patched, Product.class);
     }
 
 //    @Override
