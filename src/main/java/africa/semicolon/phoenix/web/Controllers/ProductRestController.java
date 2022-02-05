@@ -5,10 +5,15 @@ import africa.semicolon.phoenix.data.models.Product;
 import africa.semicolon.phoenix.service.ProductService;
 import africa.semicolon.phoenix.web.Exceptions.BusinessLogicException;
 import africa.semicolon.phoenix.web.Exceptions.ProductDoesNotExistException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
@@ -33,6 +38,18 @@ public class ProductRestController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody JsonPatch productPatch) throws BusinessLogicException {
+        try{
+           Product updateProduct = productService.updateProductDetails(id, productPatch);
+            return ResponseEntity.status(HttpStatus.OK).body(updateProduct);
+        } catch (BusinessLogicException e) {
+          ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+        return null;
+    }
+
 
 //    @PutMapping()
 //    public ResponseEntity<?> updateProduct(@PathVariable Long productId, @RequestBody ProductDto productDto){
