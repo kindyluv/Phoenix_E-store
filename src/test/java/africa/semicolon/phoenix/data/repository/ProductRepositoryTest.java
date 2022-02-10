@@ -36,8 +36,8 @@ class ProductRepositoryTest {
         product.setQuantity(9);
 
         assertThat(product.getId()).isNull();
-
         productRepository.save(product);
+
         log.info("Product Saved :: {}", product);
 
         assertThat(product.getId()).isNotNull();
@@ -51,6 +51,10 @@ class ProductRepositoryTest {
     @DisplayName("Find an existing product from database")
     void findExistingProductFromDatabaseTest(){
         Product product = productRepository.findById(12L).orElse(null);
+
+        assert product != null;
+        productRepository.save(product);
+
         assertThat(product).isNotNull();
         assertThat(product.getId()).isEqualTo(12);
         assertThat(product.getName()).isEqualTo("Luxury Map");
