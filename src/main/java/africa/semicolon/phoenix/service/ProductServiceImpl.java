@@ -82,7 +82,8 @@ public class ProductServiceImpl implements ProductService{
 
     private Product applyPatchToProduct(JsonPatch productPatch, Product targetProduct) throws JsonProcessingException, JsonPatchException {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = productPatch.apply(objectMapper.convertValue(targetProduct, JsonNode.class));
+        JsonNode patched = productPatch.apply(objectMapper
+                .convertValue(targetProduct, JsonNode.class));
         return objectMapper.treeToValue(patched, Product.class);
     }
 
