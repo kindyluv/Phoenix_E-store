@@ -1,4 +1,4 @@
-package africa.semicolon.phoenix.service;
+package africa.semicolon.phoenix.service.product;
 
 import africa.semicolon.phoenix.data.models.Product;
 import com.github.fge.jsonpatch.JsonPatch;
