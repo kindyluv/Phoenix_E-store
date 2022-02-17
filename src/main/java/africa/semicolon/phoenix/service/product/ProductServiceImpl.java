@@ -1,25 +1,33 @@
-package africa.semicolon.phoenix.service;
+package africa.semicolon.phoenix.service.product;
 
 import africa.semicolon.phoenix.data.dto.ProductDto;
 import africa.semicolon.phoenix.data.models.Product;
 import africa.semicolon.phoenix.data.repository.ProductRepository;
+import africa.semicolon.phoenix.service.cloud.CloudinaryService;
 import africa.semicolon.phoenix.web.Exceptions.BusinessLogicException;
 import africa.semicolon.phoenix.web.Exceptions.ProductDoesNotExistException;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.cloudinary.utils.ObjectUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Slf4j
 public class ProductServiceImpl implements ProductService{
+
+    @Qualifier("cloudinary-service")
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     @Autowired
     ProductRepository productRepository;
@@ -50,7 +58,21 @@ public class ProductServiceImpl implements ProductService{
         Optional<Product> query = productRepository.findByName(productDto.getName());
         if(query.isPresent()) throw new BusinessLogicException("Products with name"+""+ productDto.getName()+""+" already exists");
 
+        log.info("Creating object --> {}", productDto);
         Product product = new Product();
+        try {
+            if(productDto.getImage()!=null) {
+                log.info("Image is not null");
+                Map<?, ?> uploadResult = cloudinaryService.upload(productDto.getImage().getBytes(), ObjectUtils.asMap(
+                        "public_id", "inventory/" + productDto.getImage().getOriginalFilename(), "overwrite", true
+                ));
+                product.setImageUrl(uploadResult.get("url").toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+        
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
         product.setPrice(productDto.getPrice());
@@ -74,18 +96,39 @@ public class ProductServiceImpl implements ProductService{
             targetProduct = applyPatchToProduct(productPatch, targetProduct);
             log.info("Product after patch {}", targetProduct);
             return saveOrUpdate(targetProduct);
-        }catch(JsonProcessingException | JsonPatchException | BusinessLogicException e){
+        }catch(JsonPatchException | BusinessLogicException | IOException e){
             throw new BusinessLogicException("Update failed");
         }
 
     }
 
-    private Product applyPatchToProduct(JsonPatch productPatch, Product targetProduct) throws JsonProcessingException, JsonPatchException {
+//    @Override
+//    public String retrieveCloudinaryUrl(File filePath) throws IOException {
+//        File imageFile = new File(String.valueOf(filePath));
+//        Map<?,?> cloudinaryResponse = CloudinaryService.upload(imageFile, ObjectUtils.emptyMap());
+//        String url = cloudinaryResponse.get("url").toString();
+//        log.info("ImageUrl --> {}",url);
+//        return url;
+//    }
+
+    private Product applyPatchToProduct(JsonPatch productPatch, Product targetProduct) throws IOException, JsonPatchException {
         ObjectMapper objectMapper = new ObjectMapper();
+//        String imageUrl = returnImageUrl(productPatch, objectMapper);
+//        Map<?,?> map = objectMapper.convertValue();
         JsonNode patched = productPatch.apply(objectMapper
                 .convertValue(targetProduct, JsonNode.class));
         return objectMapper.treeToValue(patched, Product.class);
     }
+
+//    private String returnImageUrl(JsonPatch productPatch, ObjectMapper objectMapper) throws IOException {
+//        Map<?,?> patchObject = objectMapper.convertValue(productPatch, Map.class);
+//        File fileUrl = (File) patchObject.get("url");
+//        String url = null;
+//        if (fileUrl != null){
+//            retrieveCloudinaryUrl(fileUrl);
+//        }
+//        return url;
+//    }
 
 //    @Override
 //    public Product updateProduct(Long productId, ProductDto productDto) throws ProductDoesNotExistException {
