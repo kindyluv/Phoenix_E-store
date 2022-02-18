@@ -27,5 +27,6 @@ public class Item {
 
     public void setQuantity(int quantityAddedToCart){
        if(quantityAddedToCart <= product.getQuantity()) this.quantityAddedToCart = quantityAddedToCart;
+       else this.quantityAddedToCart = 0;
    }
 }
