@@ -22,7 +22,7 @@ public class Cart {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @OneToMany(cascade= CascadeType.PERSIST, fetch= FetchType.EAGER)
+    @OneToMany(cascade= CascadeType.ALL, fetch= FetchType.EAGER)
     private List<Item> itemList;
 
     private Double totalPrice;
