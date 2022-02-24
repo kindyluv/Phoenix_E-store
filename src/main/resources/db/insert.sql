@@ -13,8 +13,8 @@ values (12, 'Luxury Map', 2340, 3),
 
 insert into item (id, product_id, quantity_added_to_cart)
 values (102, 14, 2),
-        (122, 15, 3),
-        (133, 12, 1);
+    (122, 15, 3),
+    (133, 12, 1);
 
 insert into cart(id, total_Price)
 values (345, 0.0),
